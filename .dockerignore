@@ -1,0 +1,9 @@
+.git
+.gitignore
+.github
+config.json
+__pycache__
+*.pyc
+tests
+README.md
+Procfile

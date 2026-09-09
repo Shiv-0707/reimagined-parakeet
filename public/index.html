@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>J.A.R.V.I.S</title>
+<style>
+  :root{
+    --bg:#05070d; --bg2:#0a0e18; --panel:#0d1322; --panel2:#111a2e;
+    --line:#1d2a44; --arc:#3df0ff; --arc-dim:#0e5f6b; --text:#dce7ff;
+    --muted:#7c8db0; --accent:#ff9d2e; --ok:#46e3a1;
+    --radius:16px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 800px at 15% -10%, #0d1b3a 0%, transparent 55%),
+      radial-gradient(1000px 700px at 110% 15%, #081426 0%, transparent 50%),
+      var(--bg);
+    color:var(--text); overflow:hidden;
+  }
+  .app{display:flex; flex-direction:column; height:100vh; max-width:900px; margin:0 auto; padding:0 16px}
+
+  /* ---------- Header ---------- */
+  header{display:flex; align-items:center; gap:14px; padding:16px 4px 12px; border-bottom:1px solid var(--line)}
+  .core{position:relative; width:46px; height:46px; flex:0 0 auto}
+  .ring{position:absolute; inset:0; border-radius:50%; border:2px solid var(--arc);
+        box-shadow:0 0 18px var(--arc), inset 0 0 12px var(--arc);
+        animation:spin 6s linear infinite}
+  .ring2{position:absolute; inset:6px; border-radius:50%; border:1px dashed var(--arc);
+        opacity:.7; animation:spin 9s linear infinite reverse}
+  .dot{position:absolute; inset:16px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #ffffff, var(--arc));
+       box-shadow:0 0 16px var(--arc)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .brand{flex:1; min-width:0}
+  .brand h1{font-size:19px; letter-spacing:6px; font-weight:700;
+            background:linear-gradient(90deg,#fff,var(--arc)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .brand .sub{font-size:11px; color:var(--muted); letter-spacing:1px; margin-top:2px}
+  .badge{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600;
+         padding:5px 11px; border-radius:20px; border:1px solid var(--line); color:var(--muted);
+         background:var(--panel); white-space:nowrap}
+  .badge .led{width:8px; height:8px; border-radius:50%; background:var(--ok); box-shadow:0 0 8px var(--ok)}
+  .badge.off .led{background:var(--accent); box-shadow:0 0 8px var(--accent)}
+  .iconbtn{background:var(--panel); border:1px solid var(--line); color:var(--text);
+           width:38px; height:38px; border-radius:12px; cursor:pointer; font-size:17px; line-height:1}
+  .iconbtn:hover{border-color:var(--arc); box-shadow:0 0 12px rgba(61,240,255,.25)}
+
+  /* ---------- Chat area ---------- */
+  .chat{flex:1; overflow-y:auto; padding:18px 4px 8px; scroll-behavior:smooth}
+  .chat::-webkit-scrollbar{width:8px}
+  .chat::-webkit-scrollbar-thumb{background:var(--line); border-radius:8px}
+  .msg{display:flex; gap:12px; margin:14px 0; animation:pop .25s ease}
+  @keyframes pop{from{opacity:0; transform:translateY(6px)}to{opacity:1}}
+  .msg .ava{width:34px; height:34px; flex:0 0 auto; border-radius:10px; display:flex; align-items:center;
+            justify-content:center; font-size:16px; background:var(--panel2); border:1px solid var(--line)}
+  .msg.user{flex-direction:row-reverse}
+  .bubble{max-width:78%; padding:11px 15px; border-radius:14px; line-height:1.55; font-size:14.5px; white-space:pre-wrap; word-break:break-word}
+  .msg.jarvis .bubble{background:var(--panel2); border:1px solid var(--line);
+        border-top-left-radius:4px; box-shadow:0 4px 18px rgba(0,0,0,.25)}
+  .msg.user .bubble{background:linear-gradient(135deg,#123a4a,#0d2438);
+        border:1px solid #1f4c61; border-top-right-radius:4px}
+  .meta{font-size:10.5px; color:var(--muted); margin-top:5px; letter-spacing:.3px}
+  .meta .chip{color:var(--arc)}
+  a{color:var(--arc)}
+
+  /* typing */
+  .typing .bubble{display:inline-flex; gap:5px; align-items:center; padding:15px 16px}
+  .typing i{width:7px;height:7px;border-radius:50%;background:var(--arc);display:inline-block;animation:blink 1.2s infinite}
+  .typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,80%,100%{opacity:.2; transform:translateY(0)}40%{opacity:1; transform:translateY(-3px)}}
+
+  /* suggestions */
+  .suggest{display:flex; gap:8px; flex-wrap:wrap; padding:2px 4px 10px}
+  .suggest button{background:var(--panel); color:var(--arc); border:1px solid var(--line);
+       font-size:12.5px; padding:8px 13px; border-radius:20px; cursor:pointer}
+  .suggest button:hover{border-color:var(--arc); box-shadow:0 0 10px rgba(61,240,255,.2)}
+
+  /* ---------- Input ---------- */
+  .composer{border-top:1px solid var(--line); padding:14px 0 18px; background:linear-gradient(transparent, var(--bg) 20%)}
+  .box{display:flex; gap:10px; background:var(--panel); border:1px solid var(--line);
+       border-radius:18px; padding:6px 6px 6px 16px; align-items:center}
+  .box:focus-within{border-color:var(--arc); box-shadow:0 0 18px rgba(61,240,255,.18)}
+  #inp{flex:1; background:transparent; border:none; outline:none; color:var(--text);
+       font-size:15px; font-family:inherit; resize:none; max-height:110px; padding:6px 0; line-height:1.4}
+  #inp::placeholder{color:var(--muted)}
+  #send{background:linear-gradient(135deg,var(--arc),#2bbbd6); border:none; color:#02121a;
+        width:42px; height:42px; border-radius:14px; cursor:pointer; font-size:18px; font-weight:700;
+        box-shadow:0 0 14px rgba(61,240,255,.35); transition:.15s}
+  #send:hover{transform:translateY(-1px); box-shadow:0 0 22px rgba(61,240,255,.6)}
+  #send:disabled{opacity:.4; cursor:not-allowed; transform:none}
+  .hint{text-align:center; color:var(--muted); font-size:11px; margin-top:9px; letter-spacing:.2px}
+
+  /* ---------- Settings modal ---------- */
+  .overlay{position:fixed; inset:0; background:rgba(2,5,10,.72); backdrop-filter:blur(4px);
+           display:none; align-items:center; justify-content:center; z-index:50}
+  .overlay.open{display:flex}
+  .modal{background:var(--panel); border:1px solid var(--line); border-radius:20px;
+         width:min(560px,92vw); padding:24px; box-shadow:0 20px 60px rgba(0,0,0,.5); max-height:88vh; overflow:auto}
+  .modal h2{display:flex; align-items:center; gap:10px; font-size:18px; letter-spacing:2px; margin-bottom:4px}
+  .close{float:right; background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer}
+  .field{margin:16px 0}
+  .field label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px; letter-spacing:.5px; text-transform:uppercase}
+  .field input,.field select{width:100%; background:var(--bg2); border:1px solid var(--line);
+        border-radius:10px; padding:11px 12px; color:var(--text); font-size:14px; outline:none}
+  .field input:focus,.field select:focus{border-color:var(--arc)}
+  .field .note{font-size:11px; color:var(--muted); margin-top:6px; line-height:1.5}
+  .row{display:flex; gap:10px}
+  .row .field{flex:1}
+  .actions{display:flex; gap:10px; justify-content:flex-end; margin-top:18px}
+  .btn{background:linear-gradient(135deg,var(--arc),#2bbbd6); color:#02121a; border:none;
+       padding:11px 20px; border-radius:12px; font-weight:700; cursor:pointer; font-size:14px}
+  .btn.ghost{background:var(--panel2); color:var(--text); border:1px solid var(--line)}
+  .btn:hover{box-shadow:0 0 16px rgba(61,240,255,.4)}
+  #kv{font-size:12.5px; color:var(--ok); padding:8px; border-radius:8px; background:rgba(70,227,161,.08); display:none; margin-top:8px}
+  .pill{display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; margin-left:8px; vertical-align:middle}
+  .pill.on{background:rgba(70,227,161,.15); color:var(--ok); border:1px solid rgba(70,227,161,.4)}
+  .pill.off{background:rgba(255,157,46,.12); color:var(--accent); border:1px solid rgba(255,157,46,.4)}
+  @media(max-width:520px){.msg .bubble{max-width:88%}.brand h1{letter-spacing:3px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="core"><div class="ring"></div><div class="ring2"></div><div class="dot"></div></div>
+    <div class="brand">
+      <h1>J.A.R.V.I.S</h1>
+      <div class="sub">Just A Rather Very Intelligent System &middot; local deployment</div>
+    </div>
+    <span class="badge off" id="modeBadge"><span class="led"></span><span id="modeText">LOCAL BRAIN</span></span>
+    <button class="iconbtn" id="openSettings" title="Settings / connect AI">⚙</button>
+  </header>
+
+  <div class="suggest" id="suggestions"></div>
+
+  <div class="chat" id="chat"></div>
+
+  <div class="composer">
+    <div class="box">
+      <textarea id="inp" rows="1" placeholder="Speak to Jarvis... e.g. &quot;weather in London&quot;"></textarea>
+      <button id="send" title="Send">➤</button>
+    </div>
+    <div class="hint">Local mode: try &quot;time&quot;, &quot;help&quot;, &quot;joke&quot;, &quot;convert 5 miles to km&quot;,
+      &quot;weather in Tokyo&quot;. Connect an AI key in ⚙ for full conversation.</div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <button class="close" id="closeSettings">&times;</button>
+    <h2>NEURAL CORE <span class="pill off" id="modePill">LOCAL MODE</span></h2>
+    <p style="color:var(--muted);font-size:13px;line-height:1.5">
+      Jarvis runs a fast offline brain by default. Add an OpenAI-compatible API key to
+      unlock full conversational AI (OpenAI, OpenRouter, Groq, or any custom endpoint).</p>
+    <div class="field">
+      <label>Provider</label>
+      <select id="provider">
+        <option value="openai">OpenAI</option>
+        <option value="openrouter">OpenRouter</option>
+        <option value="groq">Groq</option>
+        <option value="custom">Custom endpoint (Ollama / LM Studio / vLLM…)</option>
+      </select>
+    </div>
+    <div class="field"><label>API key</label>
+      <input id="apiKey" type="password" placeholder="sk-…  (leave blank to use server env key)"/>
+      <div class="note">Stored only in this session / on this server. Keep it secret.</div>
+    </div>
+    <div class="field"><label>Model</label>
+      <input id="model" type="text" placeholder="auto-fills per provider"/>
+    </div>
+    <div class="field"><label>Base URL (custom only)</label>
+      <input id="baseUrl" type="text" placeholder="https://…/v1  or http://localhost:11434/v1"/>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="disableLlm">Use local brain</button>
+      <button class="btn" id="saveConfig">Save &amp; connect</button>
+    </div>
+    <div id="kv"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const chat=document.getElementById('chat'), inp=document.getElementById('inp');
+  const sendBtn=document.getElementById('send'), modeText=document.getElementById('modeText');
+  const modeBadge=document.getElementById('modeBadge'), modePill=document.getElementById('modePill');
+  const overlay=document.getElementById('overlay');
+  let busy=false, history=[];
+
+  const providerDefaults={openai:['https://api.openai.com/v1','gpt-4o-mini'],
+    openrouter:['https://openrouter.ai/api/v1','openai/gpt-4o-mini'],
+    groq:['https://api.groq.com/openai/v1','llama-3.3-70b-versatile'],
+    custom:['','']};
+
+  const quick=["What time is it?","Tell me a joke","Help",
+    "Convert 5 miles to km","Weather in London","Convert 100 USD to EUR","What is 15% of 2400?"];
+
+  // ---------- helpers ----------
+  function el(){const d=document.createElement('div');return d;}
+  function addMsg(who,text,extra){ history.push({role: who==='user'?'user':'assistant', content:text});
+    const m=el(); m.className='msg '+who;
+    const ava=el(); ava.className='ava'; ava.textContent= who==='user'?'🧑':'◆';
+    const wrap=el(); wrap.style.cssText='max-width:100%';
+    const b=el(); b.className='bubble'; b.textContent=text;
+    wrap.appendChild(b);
+    m.appendChild(ava); m.appendChild(wrap); chat.appendChild(m); scrollDown(); }
+
+  function sysMsg(t,kind){const d=el(); d.style.cssText='color:var(--muted);font-size:11.5px;text-align:center;padding:6px;letter-spacing:.3px';d.textContent=t;chat.appendChild(d);scrollDown();}
+
+  function typing(){
+    const m=el(); m.className='msg jarvis typing'; m.id='typing';
+    const ava=el(); ava.className='ava'; ava.textContent='◆';
+    const b=el(); b.className='bubble';
+    for(let i=0;i<3;i++){b.appendChild(Object.assign(document.createElement('i')));}
+    m.appendChild(ava); m.appendChild(b); chat.appendChild(m); scrollDown(); }
+  function untick(){const t=document.getElementById('typing'); if(t)t.remove();}
+  function scrollDown(){chat.scrollTop=chat.scrollHeight;}
+  function setMode(mode){ const on=mode==='llm';
+    modeBadge.className=on?'badge':'badge off'; modeText.textContent=on?'AI CONNECTED':'LOCAL BRAIN';
+    modePill.className=on?'pill on':'pill off'; modePill.textContent=on?'AI CONNECTED':'LOCAL MODE'; }
+  function kick(){inp.style.height='auto';}
+
+  inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,110)+'px';});
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
+  sendBtn.addEventListener('click',send);
+
+  function send(){
+    const msg=inp.value.trim(); if(!msg||busy) return;
+    inp.value=''; kick(); addMsg('user',msg);
+    busy=true; sendBtn.disabled=true; typing();
+    const cfg=readLocalCfg();
+    fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:msg,config:cfg,history:history.slice(0,-1)})})
+      .then(r=>r.json())
+      .then(data=>{untick(); addMsg('jarvis',data.reply); setMode(data.mode==='llm');})
+      .catch(err=>{untick(); addMsg('jarvis','[connection error] Could not reach the server. Is it running?'+err);})
+      .finally(()=>{busy=false; sendBtn.disabled=false;});
+  }
+
+  // ---------- quick suggestions ----------
+  const sg=document.getElementById('suggestions');
+  quick.forEach(q=>{const b=document.createElement('button');b.textContent=q;
+    b.onclick=()=>{inp.value=q;send();}; sg.appendChild(b);});
+
+  // ---------- settings ----------
+  const defaultCfg={provider:'openai',base_url:'',model:'',api_key:''};
+  function localCfg(){try{return JSON.parse(localStorage.getItem('jarvis_cfg')||'null')||null;}catch(e){return null;}}
+  function readLocalCfg(){return localCfg();}
+  function saveLocal(c){localStorage.setItem('jarvis_cfg',JSON.stringify(c));}
+
+  document.getElementById('openSettings').onclick=()=>{overlay.classList.add('open'); loadConfig();};
+  document.getElementById('closeSettings').onclick=()=>overlay.classList.remove('open');
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.classList.remove('open');});
+
+  function loadConfig(){
+    const c=localCfg()||defaultCfg;
+    document.getElementById('provider').value=c.provider||'openai';
+    document.getElementById('model').value=c.model||'';
+    document.getElementById('baseUrl').value=c.base_url||'';
+    document.getElementById('apiKey').value=c.api_key||'';
+    document.getElementById('kv').style.display='none';
+  }
+  document.getElementById('provider').onchange=e=>{
+    const p=e.target.value, d=providerDefaults[p];
+    if(!document.getElementById('baseUrl').value||d[0]) document.getElementById('baseUrl').value=d[0];
+    if(!document.getElementById('model').value||d[1]) document.getElementById('model').value=d[1];
+  };
+
+  document.getElementById('disableLlm').onclick=()=>{
+    localStorage.removeItem('jarvis_cfg');
+    document.getElementById('kv').style.display='block';
+    document.getElementById('kv').textContent='✓ Local brain active. Jarvis will use built-in skills only.';
+    setMode(false);
+  };
+  document.getElementById('saveConfig').onclick=()=>{
+    const c={ provider:document.getElementById('provider').value,
+      base_url:document.getElementById('baseUrl').value.trim(),
+      model:document.getElementById('model').value.trim(),
+      api_key:document.getElementById('apiKey').value.trim() };
+    saveLocal(c); overlay.classList.remove('open'); setMode(false);
+    sendMsg('test',true); // lightweight hint
+    sysMsg('⚙ AI settings saved. Send a message to try it.');
+  };
+  function sendMsg(){}
+
+  // refresh model status from server config on load
+  fetch('/api/config').then(r=>r.json()).then(c=>{
+    setMode(false);
+    if(c.api_key && c.api_key.indexOf('•••')===0) { /* server key present but we still show local until used */ }
+  }).catch(()=>{});
+
+  // greeting
+  window.addEventListener('load',()=>{
+    sysMsg('● Systems online · ' + new Date().toLocaleString());
+    addMsg('jarvis','Good day, sir. J.A.R.V.I.S. at your service.\nI\'m running in local mode — I can tell the time, solve math, convert units, report live weather and currency, and look things up. Connect an AI key in ⚙ to unlock full conversation.\n\nTry asking me something, or tap a suggestion below.');
+    scrollDown();
+  });
+})();
+</script>
+</body>
+</html>

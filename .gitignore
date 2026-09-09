@@ -1,0 +1,12 @@
+# Runtime LLM settings (may contain API keys)
+config.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+*.swp
